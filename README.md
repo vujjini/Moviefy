@@ -6,20 +6,20 @@ As the name sugests it recommends a random movie based on a movie or movies that
 
 1. Click on the 'Moviefy' button at the home page
 
-2. You are gonna be redirected to a page where you would need to input either one movie or two movies
-depending upon the variety of movies you want to get recommended
+2. You are gonna be redirected to a page where you would need to input either one or two movies
+depending upon the variety of recommendations you want.
 
-3. After you submit those movie you get the recommendation. If you don't like the recommendation or you've already watched it
+3. After you submit the titles, you get the recommendation. If you don't like the recommendation or you've already watched it
 click on the 'want another one' button to get another one.
 So those are the features of Moviefy.
 
 In applications.py I have used a movie database called TMDb which gives access to a free API.
 Then, I have used TMDb's own library called 'tmdb3api' in order to use some really helpful functions for looking up movies and
-getting details of those movies. I had to use multiple 'if' statements to ensure the userdoesn't run into errors that I, the programmer,
+getting details of those movies. I had to use multiple 'if' statements to ensure the user doesn't run into errors that I, the programmer,
 do.
 
 I have created another python application called helpers.py to use only one function called 'apology' which was inspired from the problem set 9
-called 'finance'. I have used it for minimal but big errors the user may run into if he submitted the name of a movie that is non-existent
+called 'finance'. I have used it for minimal but big errors the user may run into if he/she submitted the name of a movie that is non-existent
 or is the name of a TV show (this web app is movie based).
 
 The templates folder contains generate.html -the page where the recommended movie and its poster show up-, index.html -which is the home page-
@@ -28,9 +28,9 @@ and acts a placeholder for all the other .html pages by using some jinja syntax.
 
 The static folder contains the stylesheet for the web app.
 
-As for the design changes I've used, I didn't put much of a thought into naming the variables as I have first
-thought that naming isn't gonna have much significance. It was not until I have come towards the end of my project where I have started
-using multiple 'if' statements due to which I felt the pressure. It was a great lesson that I have learnt ,i.e, never EVER take naming the varibles
+As for the design changes I've used, I didn't put much of a thought into naming the variables, as I have first
+thought that naming wasn't gonna have much significance. It was not until I started
+using multiple 'if' statements, when irrespondibly naming varialbles backfired on me. It was a great lesson that I have learnt ,i.e, never EVER take naming the varibles
 for granted.
 
 
