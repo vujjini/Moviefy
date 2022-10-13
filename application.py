@@ -9,11 +9,11 @@ from flask import Flask, flash, redirect, render_template, request, session
 from tempfile import mkdtemp
 from datetime import datetime
 from helpers import apology
+from difflib import SequenceMatcher
 
 app = Flask(__name__)
 
 app.config["TEMPLATES_AUTO_RELOAD"] = True
-
 @app.after_request
 def after_request(response):
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
@@ -25,6 +25,8 @@ def after_request(response):
 tmdb = TMDb()
 tmdb.api_key = '39efdc94b5e403f01fd0d0343658a990'
 movie = Movie()
+def similar(a, b):
+    return SequenceMatcher(None, a, b).ratio()
 
 @app.route("/")
 def index():
@@ -45,18 +47,33 @@ def inputs():
 
         if title1:
             x = movie.search(title1) # getting a list of movies with that name
-            title1 = re.sub(r'[^\w\s]', '', title1)
+            title1 = re.sub('[\W_]+', '', title1)
             if len(x) < 1:
                 return apology("What you've inputted is either a TV show or a movie released in a parallel universe")
             title1_id = 0
+            similarity_dict = {}
             for item in x:
                 original_title1 = item["original_title"].upper()
-                if title1 in re.sub(r'[^\w\s]', '', original_title1) or re.sub(r'[^\w\s]', '', original_title1) in title1:
-                    title1_id = item["id"]
-                    break
-                else:
-                    title1_id = None
-            print(original_title1, title1_id)
+                similarity_score = similar(re.sub('[\W_]+', '', original_title1), title1.upper())
+                similarity_dict[item] = similarity_score
+                # if title1 in re.sub(r'[^\w\s]', '', original_title1) or re.sub(r'[^\w\s]', '', original_title1) in title1:
+                # print(re.sub('[\W_]+', '', original_title1), title1.upper())
+                # if title1.upper() == re.sub('[\W_]+', '', original_title1): #there is something WRONG WITH THIS LINE: FIX IT!!!!!!!!!!!!!!!!!! || ***UPDATE: found the problem. we aren't accounting for the fact that what if certain special characters like & can be input as "and" but the program doesn't know that.
+                #     print("YESSIRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR")
+                #     title1_id = item["id"]
+                #     break
+                # elif title1.upper() in re.sub('[\W_]+', '', original_title1) or re.sub('[\W_]+', '', original_title1) in title1.upper(): #there is something WRONG WITH THIS LINE: FIX IT!!!!!!!!!!!!!!!!!!
+                #     print("YESSIRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR")
+                #     title1_id = item["id"]
+                #     break
+                # else:
+                #     title1_id = None
+            item = max(similarity_dict, key=similarity_dict.get) #using similarity score to obtain the right title a user looks for
+            title1_id = item["id"]
+            print(item["id"])
+            print(item["original_title"])
+            print(len(movie.recommendations(movie_id=title1_id))) #for some reason the API can't find recommendations for 'The good, the bad and the ugly'
+            # print(original_title1, title1_id)
             # ensuring that title1 exists
             if title1_id == None or title1_id == 0:
                 title1 = None
@@ -99,4 +116,4 @@ def inputs():
             print(movies)
             return render_template("generate.html", movie = random_movie, poster = random_movie_poster)
         else:
-            return apology("I'm sorry but I did'nt watch this movie, so i coud'nt find any recommendations.")
+            return apology("I'm sorry but I did'nt watch this movie, so i couldn't find any recommendations.")
