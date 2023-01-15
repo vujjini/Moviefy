@@ -4,11 +4,11 @@ import re
 from tmdbv3api import TMDb
 from tmdbv3api import Movie
 
-from cs50 import SQL
 from flask import Flask, flash, redirect, render_template, request, session
+from flask_session import Session
 from tempfile import mkdtemp
 from datetime import datetime
-from helpers import apology
+from helpers import apology, trailer
 from difflib import SequenceMatcher
 
 app = Flask(__name__)
@@ -21,6 +21,11 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
+app.config["SESSION_FILE_DIR"] = mkdtemp()
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
+
 
 tmdb = TMDb()
 tmdb.api_key = '39efdc94b5e403f01fd0d0343658a990'
@@ -28,8 +33,10 @@ movie = Movie()
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
 
+
 @app.route("/")
 def index():
+    session["data"] = []
     return render_template("index.html")
 
 @app.route("/inputs", methods = ["GET", "POST"])
@@ -70,7 +77,9 @@ def inputs():
                 #     title1_id = None
             item = max(similarity_dict, key=similarity_dict.get) #using similarity score to obtain the right title a user looks for
             title1_id = item["id"]
+            print("hi")
             print(item["id"])
+            print("bye")
             print(item["original_title"])
             print(len(movie.recommendations(movie_id=title1_id))) #for some reason the API can't find recommendations for 'The good, the bad and the ugly'
             # print(original_title1, title1_id)
@@ -101,19 +110,37 @@ def inputs():
                 for item in recommendations2:
                     movies.append(item["original_title"])
 
+
         if len(movies) > 0:
             if title1 in movies:
                 movies.remove(title1)
             if title2 in movies:
                 movies.remove(title2)
+            for i in session["data"]:
+                if i in movies:
+                    movies.remove(i)
+            if len(movies) == 0:
+                movies = session["data"]
+                session["data"] = []
+
             random_movie = random.choice(movies) # returns a random movie from the recommended movies list
             z = movie.search(random_movie)
             for item in z:
+                # if item["original_title"] in session["data"]:
+                #     print(item["original_title"])
+                #     movies.remove(item["original_title"])
+                # else:
+                #     session["data"].append(item["original_title"])
                 if item["original_title"] == random_movie:
+                    session["data"].append(item["original_title"])
                     random_movie_poster = item.poster_path
+                    trailer_key = trailer(item["id"])
                     break
-            print(random_movie_poster)
+            # print(random_movie_poster)
+            # print(trailer_key)
+            print(session["data"])
             print(movies)
-            return render_template("generate.html", movie = random_movie, poster = random_movie_poster)
+            # print(movies)
+            return render_template("generate.html", movie = random_movie, poster = random_movie_poster, key = trailer_key)
         else:
             return apology("I'm sorry but I did'nt watch this movie, so i couldn't find any recommendations.")
